@@ -1,0 +1,603 @@
+repeat task.wait() until game:IsLoaded()
+
+------------------------------------------------
+-- SERVICES
+------------------------------------------------
+local TweenService = game:GetService("TweenService")
+local RunService   = game:GetService("RunService")
+local UIS          = game:GetService("UserInputService")
+local Lighting     = game:GetService("Lighting")
+local parent       = (gethui and gethui()) or game.CoreGui
+
+pcall(function() parent:FindFirstChild("ScriptbozUI"):Destroy() end)
+
+------------------------------------------------
+-- SCREEN GUI
+------------------------------------------------
+local gui = Instance.new("ScreenGui")
+gui.Name           = "ScriptbozUI"
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn   = false
+gui.DisplayOrder   = 999999
+gui.Parent         = parent
+
+------------------------------------------------
+-- BLUR
+------------------------------------------------
+local blur = Instance.new("BlurEffect")
+blur.Size   = 0
+blur.Parent = Lighting
+
+local function setBlur(v)
+    TweenService:Create(blur, TweenInfo.new(0.4, Enum.EasingStyle.Sine), {Size = v}):Play()
+end
+setBlur(6)
+
+------------------------------------------------
+-- POPUP NOTIFICATION  (appears first!)
+------------------------------------------------
+local popup = Instance.new("Frame", gui)
+popup.Size             = UDim2.new(0, 320, 0, 72)
+popup.AnchorPoint      = Vector2.new(0.5, 0)
+popup.Position         = UDim2.new(0.5, 0, 0, -80)  -- starts off screen top
+popup.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+popup.BorderSizePixel  = 0
+popup.ZIndex           = 60
+Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 14)
+
+local popupStroke = Instance.new("UIStroke", popup)
+popupStroke.Color       = Color3.fromRGB(70, 170, 255)
+popupStroke.Thickness   = 1.5
+popupStroke.Transparency = 0.2
+
+local popupGrad = Instance.new("UIGradient", popup)
+popupGrad.Rotation = 135
+popupGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0,   Color3.fromRGB(16, 20, 34)),
+    ColorSequenceKeypoint.new(1,   Color3.fromRGB(10, 12, 20)),
+}
+
+-- icon
+local popIcon = Instance.new("TextLabel", popup)
+popIcon.Size               = UDim2.new(0, 40, 1, 0)
+popIcon.Position           = UDim2.new(0, 10, 0, 0)
+popIcon.BackgroundTransparency = 1
+popIcon.Text               = "⚡"
+popIcon.Font               = Enum.Font.GothamBlack
+popIcon.TextSize           = 26
+popIcon.ZIndex             = 61
+
+-- title
+local popTitle = Instance.new("TextLabel", popup)
+popTitle.Size               = UDim2.new(1, -60, 0, 28)
+popTitle.Position           = UDim2.new(0, 52, 0, 8)
+popTitle.BackgroundTransparency = 1
+popTitle.Text               = "scriptboz Hub"
+popTitle.Font               = Enum.Font.GothamBlack
+popTitle.TextSize           = 15
+popTitle.TextColor3         = Color3.fromRGB(255, 255, 255)
+popTitle.TextXAlignment     = Enum.TextXAlignment.Left
+popTitle.ZIndex             = 61
+
+-- subtitle
+local popSub = Instance.new("TextLabel", popup)
+popSub.Size               = UDim2.new(1, -60, 0, 22)
+popSub.Position           = UDim2.new(0, 52, 0, 34)
+popSub.BackgroundTransparency = 1
+popSub.Text               = "Please wait 5–7 minutes to load..."
+popSub.Font               = Enum.Font.Gotham
+popSub.TextSize           = 12
+popSub.TextColor3         = Color3.fromRGB(100, 170, 230)
+popSub.TextXAlignment     = Enum.TextXAlignment.Left
+popSub.ZIndex             = 61
+
+-- slide in popup
+task.wait(0.3)
+TweenService:Create(popup, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Position = UDim2.new(0.5, 0, 0, 16)
+}):Play()
+
+-- slide out after 8s
+task.delay(8, function()
+    TweenService:Create(popup, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
+        Position = UDim2.new(0.5, 0, 0, -90)
+    }):Play()
+    task.wait(0.4)
+    popup:Destroy()
+end)
+
+------------------------------------------------
+-- MAIN CARD  (compact, tight layout)
+------------------------------------------------
+local card = Instance.new("Frame", gui)
+card.Name             = "LoadCard"
+card.Size             = UDim2.new(0, 280, 0, 310)  -- fixed pixel size, compact
+card.AnchorPoint      = Vector2.new(0.5, 0.5)
+card.Position         = UDim2.fromScale(0.5, 0.5)
+card.BackgroundColor3 = Color3.fromRGB(11, 13, 20)
+card.BorderSizePixel  = 0
+card.ZIndex           = 20
+card.BackgroundTransparency = 1
+Instance.new("UICorner", card).CornerRadius = UDim.new(0, 20)
+
+local cg = Instance.new("UIGradient", card)
+cg.Rotation = 135
+cg.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0,   Color3.fromRGB(14, 17, 28)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 12, 20)),
+    ColorSequenceKeypoint.new(1,   Color3.fromRGB(8,  10, 17)),
+}
+
+local cardStroke = Instance.new("UIStroke", card)
+cardStroke.Color       = Color3.fromRGB(70, 170, 255)
+cardStroke.Thickness   = 1.5
+cardStroke.Transparency = 0.25
+
+-- pop in animation
+local cScale = Instance.new("UIScale", card)
+cScale.Scale = 0.82
+TweenService:Create(cScale, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
+TweenService:Create(card, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+
+------------------------------------------------
+-- TOP ACCENT BAR
+------------------------------------------------
+local topBar = Instance.new("Frame", card)
+topBar.Size             = UDim2.new(1, 0, 0, 3)
+topBar.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
+topBar.BorderSizePixel  = 0
+topBar.ZIndex           = 21
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 20)
+
+local tbg = Instance.new("UIGradient", topBar)
+tbg.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0,   Color3.fromRGB(0,   100, 220)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 220, 255)),
+    ColorSequenceKeypoint.new(1,   Color3.fromRGB(0,   100, 220)),
+}
+task.spawn(function()
+    local t = 0
+    while card.Parent do
+        t += 0.02
+        tbg.Offset = Vector2.new(math.sin(t) * 0.5, 0)
+        RunService.RenderStepped:Wait()
+    end
+end)
+
+------------------------------------------------
+-- AVATAR GLOW
+------------------------------------------------
+local avatarGlow = Instance.new("Frame", card)
+avatarGlow.Size             = UDim2.new(0, 78, 0, 78)
+avatarGlow.AnchorPoint      = Vector2.new(0.5, 0)
+avatarGlow.Position         = UDim2.new(0.5, 0, 0, 16)
+avatarGlow.BackgroundColor3 = Color3.fromRGB(60, 160, 255)
+avatarGlow.BackgroundTransparency = 0.72
+avatarGlow.BorderSizePixel  = 0
+avatarGlow.ZIndex           = 21
+Instance.new("UICorner", avatarGlow).CornerRadius = UDim.new(1, 0)
+
+task.spawn(function()
+    while card.Parent do
+        TweenService:Create(avatarGlow, TweenInfo.new(1.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.55,
+            Size = UDim2.new(0, 84, 0, 84),
+        }):Play()
+        task.wait(1.3)
+        TweenService:Create(avatarGlow, TweenInfo.new(1.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.78,
+            Size = UDim2.new(0, 74, 0, 74),
+        }):Play()
+        task.wait(1.3)
+    end
+end)
+
+------------------------------------------------
+-- AVATAR IMAGE
+------------------------------------------------
+local avatarFrame = Instance.new("Frame", card)
+avatarFrame.Size             = UDim2.new(0, 60, 0, 60)
+avatarFrame.AnchorPoint      = Vector2.new(0.5, 0)
+avatarFrame.Position         = UDim2.new(0.5, 0, 0, 25)
+avatarFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 36)
+avatarFrame.BorderSizePixel  = 0
+avatarFrame.ZIndex           = 22
+Instance.new("UICorner", avatarFrame).CornerRadius = UDim.new(1, 0)
+
+local avatarRing = Instance.new("UIStroke", avatarFrame)
+avatarRing.Color       = Color3.fromRGB(100, 200, 255)
+avatarRing.Thickness   = 2
+avatarRing.Transparency = 0.15
+
+local avatarImg = Instance.new("ImageLabel", avatarFrame)
+avatarImg.Size             = UDim2.fromScale(1, 1)
+avatarImg.BackgroundTransparency = 1
+avatarImg.Image            = "rbxassetid://83658392374243"
+avatarImg.ScaleType        = Enum.ScaleType.Crop
+avatarImg.ZIndex           = 23
+Instance.new("UICorner", avatarImg).CornerRadius = UDim.new(1, 0)
+
+task.spawn(function()
+    local s = Instance.new("UIScale", avatarFrame)
+    while card.Parent do
+        TweenService:Create(s, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Scale = 1.06}):Play()
+        task.wait(1.2)
+        TweenService:Create(s, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Scale = 1.0}):Play()
+        task.wait(1.2)
+    end
+end)
+
+------------------------------------------------
+-- CHANNEL NAME
+------------------------------------------------
+local chanName = Instance.new("TextLabel", card)
+chanName.Size               = UDim2.new(1, -16, 0, 24)
+chanName.AnchorPoint        = Vector2.new(0.5, 0)
+chanName.Position           = UDim2.new(0.5, 0, 0, 94)
+chanName.BackgroundTransparency = 1
+chanName.Text               = "scriptboz"
+chanName.Font               = Enum.Font.GothamBlack
+chanName.TextSize           = 20
+chanName.TextColor3         = Color3.fromRGB(255, 255, 255)
+chanName.ZIndex             = 22
+
+local chanHandle = Instance.new("TextLabel", card)
+chanHandle.Size               = UDim2.new(1, -16, 0, 16)
+chanHandle.AnchorPoint        = Vector2.new(0.5, 0)
+chanHandle.Position           = UDim2.new(0.5, 0, 0, 118)
+chanHandle.BackgroundTransparency = 1
+chanHandle.Text               = "@scriptboz"
+chanHandle.Font               = Enum.Font.Gotham
+chanHandle.TextSize           = 11
+chanHandle.TextColor3         = Color3.fromRGB(100, 150, 200)
+chanHandle.ZIndex             = 22
+
+------------------------------------------------
+-- SEPARATOR
+------------------------------------------------
+local sep = Instance.new("Frame", card)
+sep.Size             = UDim2.new(0.78, 0, 0, 1)
+sep.AnchorPoint      = Vector2.new(0.5, 0)
+sep.Position         = UDim2.new(0.5, 0, 0, 142)
+sep.BackgroundColor3 = Color3.fromRGB(70, 140, 220)
+sep.BackgroundTransparency = 0.55
+sep.BorderSizePixel  = 0
+sep.ZIndex           = 22
+local sepG = Instance.new("UIGradient", sep)
+sepG.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0,    1),
+    NumberSequenceKeypoint.new(0.15, 0),
+    NumberSequenceKeypoint.new(0.85, 0),
+    NumberSequenceKeypoint.new(1,    1),
+}
+
+------------------------------------------------
+-- SCRIPT LOADING LABEL
+------------------------------------------------
+local scriptTag = Instance.new("TextLabel", card)
+scriptTag.Size               = UDim2.new(1, -20, 0, 20)
+scriptTag.AnchorPoint        = Vector2.new(0.5, 0)
+scriptTag.Position           = UDim2.new(0.5, 0, 0, 150)
+scriptTag.BackgroundTransparency = 1
+scriptTag.Text               = "⚡  SCRIPT LOADING"
+scriptTag.Font               = Enum.Font.GothamBold
+scriptTag.TextSize           = 13
+scriptTag.TextColor3         = Color3.fromRGB(80, 190, 255)
+scriptTag.ZIndex             = 22
+
+task.spawn(function()
+    while card.Parent do
+        TweenService:Create(scriptTag, TweenInfo.new(0.65, Enum.EasingStyle.Sine), {TextTransparency = 0.45}):Play()
+        task.wait(0.65)
+        TweenService:Create(scriptTag, TweenInfo.new(0.65, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
+        task.wait(0.65)
+    end
+end)
+
+------------------------------------------------
+-- STATUS CYCLING
+------------------------------------------------
+local statusLabel = Instance.new("TextLabel", card)
+statusLabel.Size               = UDim2.new(1, -20, 0, 16)
+statusLabel.AnchorPoint        = Vector2.new(0.5, 0)
+statusLabel.Position           = UDim2.new(0.5, 0, 0, 174)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text               = "Initializing modules..."
+statusLabel.Font               = Enum.Font.Gotham
+statusLabel.TextSize           = 11
+statusLabel.TextColor3         = Color3.fromRGB(100, 150, 200)
+statusLabel.ZIndex             = 22
+
+local msgs = {
+    "Initializing modules...",
+    "Loading remote functions...",
+    "Bypassing detection layers...",
+    "Fetching latest patches...",
+    "Connecting to servers...",
+    "Injecting exploit hooks...",
+    "Verifying script integrity...",
+    "Warming up features...",
+    "Almost ready...",
+}
+local mi = 1
+task.spawn(function()
+    while card.Parent do
+        TweenService:Create(statusLabel, TweenInfo.new(0.18), {TextTransparency = 1}):Play()
+        task.wait(0.18)
+        mi = (mi % #msgs) + 1
+        statusLabel.Text = msgs[mi]
+        TweenService:Create(statusLabel, TweenInfo.new(0.18), {TextTransparency = 0}):Play()
+        task.wait(math.random(30, 70) / 10)
+    end
+end)
+
+------------------------------------------------
+-- PROGRESS BAR
+------------------------------------------------
+local barBG = Instance.new("Frame", card)
+barBG.Size             = UDim2.new(0.84, 0, 0, 7)
+barBG.AnchorPoint      = Vector2.new(0.5, 0)
+barBG.Position         = UDim2.new(0.5, 0, 0, 198)
+barBG.BackgroundColor3 = Color3.fromRGB(20, 28, 45)
+barBG.BorderSizePixel  = 0
+barBG.ZIndex           = 22
+Instance.new("UICorner", barBG).CornerRadius = UDim.new(0, 7)
+
+local bar = Instance.new("Frame", barBG)
+bar.Size             = UDim2.fromScale(0, 1)
+bar.BackgroundColor3 = Color3.fromRGB(60, 160, 255)
+bar.BorderSizePixel  = 0
+bar.ZIndex           = 23
+Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 7)
+
+local barGrad = Instance.new("UIGradient", bar)
+barGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30,  100, 220)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 220, 255)),
+}
+
+-- shimmer
+local shim = Instance.new("Frame", bar)
+shim.Size             = UDim2.new(0, 20, 1, 0)
+shim.Position         = UDim2.fromScale(-0.5, 0)
+shim.BackgroundColor3 = Color3.fromRGB(220, 240, 255)
+shim.BackgroundTransparency = 0.55
+shim.BorderSizePixel  = 0
+shim.ZIndex           = 24
+Instance.new("UICorner", shim).CornerRadius = UDim.new(0, 7)
+local shimG = Instance.new("UIGradient", shim)
+shimG.Rotation     = 90
+shimG.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0.4), NumberSequenceKeypoint.new(1, 1)
+}
+task.spawn(function()
+    while card.Parent do
+        TweenService:Create(shim, TweenInfo.new(0.9, Enum.EasingStyle.Sine), {Position = UDim2.fromScale(1.4, 0)}):Play()
+        task.wait(0.9)
+        shim.Position = UDim2.fromScale(-0.5, 0)
+        task.wait(0.05)
+    end
+end)
+
+-- tip glow
+local tip = Instance.new("Frame", barBG)
+tip.Size             = UDim2.new(0, 4, 0, 13)
+tip.AnchorPoint      = Vector2.new(0.5, 0.5)
+tip.Position         = UDim2.fromScale(0.01, 0.5)
+tip.BackgroundColor3 = Color3.fromRGB(180, 230, 255)
+tip.BackgroundTransparency = 0.05
+tip.BorderSizePixel  = 0
+tip.ZIndex           = 25
+Instance.new("UICorner", tip).CornerRadius = UDim.new(1, 0)
+
+------------------------------------------------
+-- TIMER + PERCENT ROW
+------------------------------------------------
+local tRow = Instance.new("Frame", card)
+tRow.Size             = UDim2.new(0.84, 0, 0, 18)
+tRow.AnchorPoint      = Vector2.new(0.5, 0)
+tRow.Position         = UDim2.new(0.5, 0, 0, 209)
+tRow.BackgroundTransparency = 1
+tRow.ZIndex           = 22
+
+local timerL = Instance.new("TextLabel", tRow)
+timerL.Size               = UDim2.fromScale(0.5, 1)
+timerL.BackgroundTransparency = 1
+timerL.Text               = "05:00"
+timerL.Font               = Enum.Font.GothamBold
+timerL.TextSize           = 11
+timerL.TextColor3         = Color3.fromRGB(80, 160, 220)
+timerL.TextXAlignment     = Enum.TextXAlignment.Left
+timerL.ZIndex             = 22
+
+local pctL = Instance.new("TextLabel", tRow)
+pctL.Size               = UDim2.fromScale(0.5, 1)
+pctL.Position           = UDim2.fromScale(0.5, 0)
+pctL.BackgroundTransparency = 1
+pctL.Text               = "0%"
+pctL.Font               = Enum.Font.GothamBold
+pctL.TextSize           = 11
+pctL.TextColor3         = Color3.fromRGB(60, 130, 180)
+pctL.TextXAlignment     = Enum.TextXAlignment.Right
+pctL.ZIndex             = 22
+
+------------------------------------------------
+-- ANIMATED DOTS
+------------------------------------------------
+local dotsF = Instance.new("Frame", card)
+dotsF.Size             = UDim2.new(0, 48, 0, 10)
+dotsF.AnchorPoint      = Vector2.new(0.5, 0)
+dotsF.Position         = UDim2.new(0.5, 0, 0, 234)
+dotsF.BackgroundTransparency = 1
+dotsF.ZIndex           = 22
+
+local dots = {}
+for i = 1, 4 do
+    local d = Instance.new("Frame", dotsF)
+    d.Size             = UDim2.new(0, 6, 0, 6)
+    d.Position         = UDim2.new(0, (i-1)*14, 0.5, -3)
+    d.BackgroundColor3 = Color3.fromRGB(60, 160, 255)
+    d.BackgroundTransparency = 0.65
+    d.BorderSizePixel  = 0
+    d.ZIndex           = 23
+    Instance.new("UICorner", d).CornerRadius = UDim.new(1, 0)
+    dots[i] = d
+end
+task.spawn(function()
+    local idx = 1
+    while card.Parent do
+        for i, d in ipairs(dots) do
+            local a = (i == idx)
+            TweenService:Create(d, TweenInfo.new(0.13), {
+                BackgroundTransparency = a and 0 or 0.7,
+                Size = a and UDim2.new(0, 9, 0, 9) or UDim2.new(0, 5, 0, 5),
+            }):Play()
+        end
+        idx = (idx % #dots) + 1
+        task.wait(0.13)
+    end
+end)
+
+------------------------------------------------
+-- WATERMARK
+------------------------------------------------
+local ver = Instance.new("TextLabel", card)
+ver.Size               = UDim2.new(1, -16, 0, 14)
+ver.AnchorPoint        = Vector2.new(0.5, 0)
+ver.Position           = UDim2.new(0.5, 0, 0, 252)
+ver.BackgroundTransparency = 1
+ver.Text               = "scriptboz  •  for educational purposes only"
+ver.Font               = Enum.Font.Gotham
+ver.TextSize           = 10
+ver.TextColor3         = Color3.fromRGB(50, 85, 125)
+ver.ZIndex             = 22
+
+------------------------------------------------
+-- PARTICLES
+------------------------------------------------
+task.spawn(function()
+    while card.Parent do
+        local p = Instance.new("Frame", gui)
+        local sz = math.random(2, 4)
+        p.Size             = UDim2.new(0, sz, 0, sz)
+        p.BackgroundColor3 = Color3.fromRGB(math.random(50,120), math.random(150,220), 255)
+        p.BackgroundTransparency = math.random(30, 60) / 100
+        p.BorderSizePixel  = 0
+        p.ZIndex           = 18
+        local cx = 0.5 + (math.random(-16, 16) / 100)
+        local cy = 0.5 + (math.random(-22, 22) / 100)
+        p.Position = UDim2.fromScale(cx, cy + 0.25)
+        Instance.new("UICorner", p).CornerRadius = UDim.new(1, 0)
+        local dur = math.random(28, 55) / 10
+        TweenService:Create(p, TweenInfo.new(dur, Enum.EasingStyle.Sine), {
+            Position             = UDim2.fromScale(cx + (math.random(-6,6)/100), cy - 0.22),
+            BackgroundTransparency = 1,
+        }):Play()
+        task.delay(dur, function() if p and p.Parent then p:Destroy() end end)
+        task.wait(math.random(18, 40) / 100)
+    end
+end)
+
+------------------------------------------------
+-- SCAN LINE
+------------------------------------------------
+local sl = Instance.new("Frame", gui)
+sl.Size             = UDim2.new(1, 0, 0, 1)
+sl.Position         = UDim2.fromScale(0, -0.01)
+sl.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
+sl.BackgroundTransparency = 0.84
+sl.BorderSizePixel  = 0
+sl.ZIndex           = 17
+task.spawn(function()
+    while card.Parent do
+        TweenService:Create(sl, TweenInfo.new(4.5, Enum.EasingStyle.Linear), {Position = UDim2.fromScale(0, 1.01)}):Play()
+        task.wait(4.5)
+        sl.Position = UDim2.fromScale(0, -0.01)
+        task.wait(0.04)
+    end
+end)
+
+------------------------------------------------
+-- MAIN LOADING LOOP  (60 seconds)
+------------------------------------------------
+local loadStart = tick()
+local LOAD_TIME = 300 -- 5 minutes
+
+while true do
+    local elapsed = tick() - loadStart
+    local p       = math.clamp(elapsed / LOAD_TIME, 0, 1)
+    bar.Size      = bar.Size:Lerp(UDim2.fromScale(p, 1), 0.10)
+    tip.Position  = UDim2.fromScale(math.clamp(p, 0.01, 0.99), 0.5)
+
+    local rem = math.max(0, LOAD_TIME - elapsed)
+    timerL.Text = string.format("%02d:%02d", math.floor(rem/60), math.floor(rem%60))
+    pctL.Text   = math.floor(p*100) .. "%"
+
+    if p >= 1 then break end
+    RunService.RenderStepped:Wait()
+end
+
+-- PHASE 2 — finalize 5s
+chanHandle.Text = "Finalizing..."
+bar.Size        = UDim2.fromScale(0, 1)
+pctL.Text       = "0%"
+
+local t2 = tick()
+while tick() - t2 < 5 do
+    local e2 = tick() - t2
+    local p2 = e2 / 5
+    bar.Size = UDim2.fromScale(p2, 1)
+    tip.Position = UDim2.fromScale(math.clamp(p2, 0.01, 0.99), 0.5)
+    timerL.Text = string.format("00:%02d", math.floor(math.max(0, 5 - e2)))
+    pctL.Text   = math.floor(p2*100) .. "%"
+    RunService.RenderStepped:Wait()
+end
+
+-- FADE OUT
+TweenService:Create(cScale, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Scale = 0.88}):Play()
+for _, v in ipairs(card:GetDescendants()) do
+    if v:IsA("GuiObject") then
+        pcall(function()
+            TweenService:Create(v, TweenInfo.new(0.28), {
+                BackgroundTransparency = 1,
+                TextTransparency       = 1,
+                ImageTransparency      = 1,
+            }):Play()
+        end)
+    end
+end
+TweenService:Create(card, TweenInfo.new(0.28), {BackgroundTransparency = 1}):Play()
+task.wait(0.35)
+card:Destroy()
+sl:Destroy()
+setBlur(0)
+
+------------------------------------------------
+-- DONE
+------------------------------------------------
+local function Notify(text)
+    local n = Instance.new("TextLabel", gui)
+    n.Size              = UDim2.fromScale(0.32, 0.055)
+    n.Position          = UDim2.fromScale(0.34, 0.02)
+    n.BackgroundColor3  = Color3.fromRGB(15, 15, 20)
+    n.TextColor3        = Color3.fromRGB(100, 200, 255)
+    n.Text              = text
+    n.Font              = Enum.Font.GothamBold
+    n.TextSize          = 16
+    n.TextWrapped       = true
+    n.BackgroundTransparency = 0.08
+    n.TextTransparency  = 1
+    n.ZIndex            = 50
+    Instance.new("UICorner", n).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", n)
+    s.Color     = Color3.fromRGB(80, 180, 255)
+    s.Thickness = 1
+    TweenService:Create(n, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+    task.delay(2.5, function()
+        TweenService:Create(n, TweenInfo.new(0.3), {TextTransparency = 1, BackgroundTransparency = 1}):Play()
+        task.wait(0.3)
+        n:Destroy()
+    end)
+end
+
+Notify("scriptboz Hub Loaded! ⚡")
