@@ -403,7 +403,7 @@ tRow.ZIndex           = 22
 local timerL = Instance.new("TextLabel", tRow)
 timerL.Size               = UDim2.fromScale(0.5, 1)
 timerL.BackgroundTransparency = 1
-timerL.Text               = "05:00"
+timerL.Text               = "03:00"
 timerL.Font               = Enum.Font.GothamBold
 timerL.TextSize           = 11
 timerL.TextColor3         = Color3.fromRGB(80, 160, 220)
@@ -521,7 +521,7 @@ end)
 -- MAIN LOADING LOOP  (60 seconds)
 ------------------------------------------------
 local loadStart = tick()
-local LOAD_TIME = 300 -- 5 minutes
+local LOAD_TIME = 180 -- 3 minutes
 
 while true do
     local elapsed = tick() - loadStart
